@@ -8,7 +8,8 @@ import {
     Matrix4, 
     Transforms, 
     UniformType,  
-    CustomShaderTranslucencyMode
+    CustomShaderTranslucencyMode,
+    TextureUniform
 } from "cesium";
 
 /**
@@ -77,20 +78,22 @@ async function demo(){
         uniforms: {
             clipMap: {
                 type: UniformType.SAMPLER_2D,
-                value: clipParam.canvas
+                value: new TextureUniform({
+                    url: clipParam.canvas.toDataURL()
+                })
             },
-            clipRectangle: {
+            clipMapRect: {
                 type: UniformType.VEC4,
                 value: clipParam.rectangle
             },
-            clipMatrix: {
+            clipMapMatrix: {
                 type: UniformType.MAT4,
                 value: clipParam.matrix
             }
         },
         fragmentShaderText:`
         float clip(vec3 p){
-          p = (clipMatrix * vec4(p, 1.0)).xyz;
+          p = (clipMapMatrix * vec4(p, 1.0)).xyz;
           if(p.x >= clipMapRect.x && p.x <= clipMapRect.z && p.y >= clipMapRect.y && p.y <= clipMapRect.w){
             vec2 uv = vec2((p.x - clipMapRect.x) / (clipMapRect.z - clipMapRect.x), (p.y - clipMapRect.y) / (clipMapRect.w - clipMapRect.y));
             return texture(clipMap, uv).r;
